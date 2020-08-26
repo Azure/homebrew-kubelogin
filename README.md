@@ -1,3 +1,12 @@
+# Azure Kubelogin Homebrew Repository
+
+This is a homebrew repo for installing [kubelogin](https://github.com/Azure/kubelogin).
+
+## Usage
+
+```
+$ brew install Azure/kubelogin/kubelogin
+```
 
 # Contributing
 
