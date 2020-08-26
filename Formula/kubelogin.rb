@@ -10,7 +10,7 @@ class Kubelogin < Formula
   license "MIT"
 
   def install
-    bin.install name
+    bin.install "bin/darwin_amd64/kubelogin"
   end
 
   test do
