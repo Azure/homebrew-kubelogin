@@ -4,9 +4,9 @@
 class Kubelogin < Formula
   desc "A Kubernetes credential (exec) plugin implementing azure authentication"
   homepage "https://github.com/Azure/kubelogin"
-  version "0.0.5"
+  version "0.0.6"
   url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-amd64.zip"
-  sha256 "985d614689222c62c1cc635f23eb2bc0b66b8b97b8f13a7bf4594e42cc22edcf"
+  sha256 "df65ee1200939c56d1ee0afdacbd7df4b1b9d70b3a8f2a8b50926372461f2e54"
   license "MIT"
 
   def install
