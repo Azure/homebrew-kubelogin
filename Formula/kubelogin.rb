@@ -9,11 +9,11 @@ class Kubelogin < Formula
 
   if OS.mac?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-amd64.zip"
-    sha256 "389987e03d7ea7fb2dd2ad4aab19a83e7dfa063943594a04434741e6d18339ac"
+    sha256 "5835457f09189fedb1a96524f01215c93cf76b818a670bb5854ee8fa2ba1ea22"
   end
   if OS.linux?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-amd64.zip"
-    sha256 "fffa36a3ad9310e7548f52e6b55fd3928362f43aa4e0a45dd5807ce991483080"
+    sha256 "fcf02d449d04e730d4fb3aa7b327724c75912594e1b766688bc35c3d8007688a"
   end
 
   def install
