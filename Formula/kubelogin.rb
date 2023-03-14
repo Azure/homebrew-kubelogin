@@ -4,19 +4,19 @@
 class Kubelogin < Formula
   desc "A Kubernetes credential (exec) plugin implementing azure authentication"
   homepage "https://github.com/Azure/kubelogin"
-  version "0.0.27"
+  version "0.0.28"
   license "MIT"
 
   case
   when OS.mac? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-amd64.zip"
-    sha256 "30a3b94f364163de2096d5698f481ba96119f4e090c9be4af7d0878bc38d1e19"
+    sha256 "a6caf9000599afa47cf00a0c3e1b72907cd382a7427d6d6ae4edad2bbc15d84e"
   when OS.mac? && Hardware::CPU.arm?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-arm64.zip"
-    sha256 "e88f299c34ea5b94fc3f4f205cb7a0b73ffba4f84dc193191d63758d9e022760"
+    sha256 "057c8aac01516b9400e70afd57f5bd3cc1b44ee070dd4981775677f7cdf568e7"
   when OS.linux? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-amd64.zip"
-    sha256 "a8a0a34f330d1a8b19965dbf10dee4d76ce23ec5b5623f9534a88326b8475e03"
+    sha256 "c854ae5d704b645aba0e90351ced1add1cd2a3bd13a392883053a371f60b6a4a"
   else
     odie "Unexpected platform!"
   end
