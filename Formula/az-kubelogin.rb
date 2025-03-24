@@ -4,7 +4,7 @@
 class AzKubelogin < Formula
   desc "A Kubernetes credential (exec) plugin implementing azure authentication"
   homepage "https://github.com/Azure/kubelogin"
-  version "0.2.6"
+  version "0.2.7"
   license "MIT"
 
   case
