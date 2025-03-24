@@ -10,13 +10,13 @@ class AzKubelogin < Formula
   case
   when OS.mac? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-amd64.zip"
-    sha256 "5daec7a0e4fac9bc25ccd2b17ce4a2bf00ae81f66d057ffd84e439dd266751a7"
+    sha256 "83f26e73a4645e21b1f6fc0a553459ebef50dbed8e984935a39d8535785f3a38"
   when OS.mac? && Hardware::CPU.arm?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-arm64.zip"
-    sha256 "6793be47c42ddcd84adc010f13ed257755fde7420e30cec23444ff922ffe05a7"
+    sha256 "e8c2b56d1d7f23e2677eddaec1659714a093c4e3b0b8386fe3eaa9bc8a24a424"
   when OS.linux? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-amd64.zip"
-    sha256 "e6d8c5e8726596f229dc4f79cbd92f9baac43fd267dcb9f0b59a37af0566c5e2"
+    sha256 "5053984edc5ccb9dafccf41bcf8d1814f9a4704f2da529c4b9100ecca3ca7857"
   else
     odie "Unexpected platform!"
   end
