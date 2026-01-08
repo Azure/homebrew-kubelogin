@@ -182,5 +182,5 @@ jobs:
             ---
             *This PR was automatically created by the update-kubelogin workflow.*
           branch: "update-kubelogin-v${{ steps.version.outputs.version }}"
-          base: master
+          base: ${{ github.event.repository.default_branch }}
           delete-branch: true
