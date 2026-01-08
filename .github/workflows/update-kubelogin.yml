@@ -39,6 +39,11 @@ jobs:
           fi
           # Remove 'v' prefix if present
           VERSION="${VERSION#v}"
+          # Validate version format (semantic versioning: X.Y.Z)
+          if ! echo "${VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format '${VERSION}'. Expected semantic version (e.g., 0.2.14)"
+            exit 1
+          fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Latest kubelogin version: ${VERSION}"
 
@@ -134,16 +139,16 @@ jobs:
             echo "Updating ${formula}..."
 
             # Update version
-            sed -i "s/version \"[0-9.]*\"/version \"${VERSION}\"/" "${formula}"
+            sed -i "s/version \"[0-9.]\+\"/version \"${VERSION}\"/" "${formula}"
 
             # Update SHA256 for darwin-amd64 (first sha256 after darwin-amd64 url)
-            sed -i "/kubelogin-darwin-amd64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_DARWIN_AMD64}\"/}" "${formula}"
+            sed -i "/kubelogin-darwin-amd64.zip/,/sha256/{s/sha256 \"[a-fA-F0-9]\+\"/sha256 \"${SHA256_DARWIN_AMD64}\"/}" "${formula}"
 
             # Update SHA256 for darwin-arm64
-            sed -i "/kubelogin-darwin-arm64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_DARWIN_ARM64}\"/}" "${formula}"
+            sed -i "/kubelogin-darwin-arm64.zip/,/sha256/{s/sha256 \"[a-fA-F0-9]\+\"/sha256 \"${SHA256_DARWIN_ARM64}\"/}" "${formula}"
 
             # Update SHA256 for linux-amd64
-            sed -i "/kubelogin-linux-amd64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_LINUX_AMD64}\"/}" "${formula}"
+            sed -i "/kubelogin-linux-amd64.zip/,/sha256/{s/sha256 \"[a-fA-F0-9]\+\"/sha256 \"${SHA256_LINUX_AMD64}\"/}" "${formula}"
 
             echo "Updated ${formula}"
           done
