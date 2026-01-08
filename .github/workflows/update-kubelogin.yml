@@ -49,6 +49,8 @@ jobs:
 
       - name: Check current version in formula
         id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CURRENT_VERSION=$(grep -m1 'version "' Formula/kubelogin.rb | sed 's/.*version "\([^"]*\)".*/\1/')
           LATEST_VERSION="${{ steps.version.outputs.version }}"
@@ -60,8 +62,16 @@ jobs:
             echo "Already up to date!"
             echo "needs_update=false" >> $GITHUB_OUTPUT
           else
-            echo "Update needed: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
-            echo "needs_update=true" >> $GITHUB_OUTPUT
+            # Check if a PR already exists for this version
+            PR_BRANCH="update-kubelogin-v${LATEST_VERSION}"
+            EXISTING_PR=$(gh pr list --head "${PR_BRANCH}" --json number --jq '.[0].number // empty')
+            if [ -n "${EXISTING_PR}" ]; then
+              echo "PR #${EXISTING_PR} already exists for version ${LATEST_VERSION}"
+              echo "needs_update=false" >> $GITHUB_OUTPUT
+            else
+              echo "Update needed: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+              echo "needs_update=true" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: Download and verify archives
