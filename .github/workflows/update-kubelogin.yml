@@ -1,0 +1,181 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT license.
+
+name: Update kubelogin version
+
+on:
+  schedule:
+    # Run daily at 9:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'kubelogin version (without v prefix, e.g., 0.2.14). Leave empty to check for latest.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest release version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            # Use manually provided version
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            # Get latest release from Azure/kubelogin
+            VERSION=$(gh release view --repo Azure/kubelogin --json tagName -q '.tagName')
+          fi
+          # Remove 'v' prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Latest kubelogin version: ${VERSION}"
+
+      - name: Check current version in formula
+        id: check
+        run: |
+          CURRENT_VERSION=$(grep -m1 'version "' Formula/kubelogin.rb | sed 's/.*version "\([^"]*\)".*/\1/')
+          LATEST_VERSION="${{ steps.version.outputs.version }}"
+          echo "Current version: ${CURRENT_VERSION}"
+          echo "Latest version:  ${LATEST_VERSION}"
+          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+          if [ "${CURRENT_VERSION}" = "${LATEST_VERSION}" ]; then
+            echo "Already up to date!"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          else
+            echo "Update needed: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download and verify archives
+        if: steps.check.outputs.needs_update == 'true'
+        id: download
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Define archives to download
+          ARCHIVES=(
+            "kubelogin-darwin-amd64.zip"
+            "kubelogin-darwin-arm64.zip"
+            "kubelogin-linux-amd64.zip"
+          )
+
+          mkdir -p downloads
+          cd downloads
+
+          # Download all archives and their sha256 files using gh cli
+          for archive in "${ARCHIVES[@]}"; do
+            echo "Downloading ${archive} and ${archive}.sha256..."
+            gh release download "v${VERSION}" \
+              --repo Azure/kubelogin \
+              --pattern "${archive}" \
+              --pattern "${archive}.sha256"
+          done
+
+          # Verify SHA256 for each archive
+          for archive in "${ARCHIVES[@]}"; do
+            echo "Verifying ${archive}..."
+
+            # Extract expected SHA256 (file format: "sha256  filename")
+            EXPECTED_SHA256=$(awk '{print $1}' "${archive}.sha256")
+
+            # Calculate actual SHA256
+            ACTUAL_SHA256=$(sha256sum "${archive}" | awk '{print $1}')
+
+            echo "Expected SHA256: ${EXPECTED_SHA256}"
+            echo "Actual SHA256:   ${ACTUAL_SHA256}"
+
+            # Verify SHA256
+            if [ "${EXPECTED_SHA256}" != "${ACTUAL_SHA256}" ]; then
+              echo "::error::SHA256 mismatch for ${archive}!"
+              exit 1
+            fi
+
+            echo "SHA256 verified for ${archive}"
+          done
+
+          # Output SHA256 values for formula update
+          echo "sha256_darwin_amd64=$(awk '{print $1}' kubelogin-darwin-amd64.zip.sha256)" >> $GITHUB_OUTPUT
+          echo "sha256_darwin_arm64=$(awk '{print $1}' kubelogin-darwin-arm64.zip.sha256)" >> $GITHUB_OUTPUT
+          echo "sha256_linux_amd64=$(awk '{print $1}' kubelogin-linux-amd64.zip.sha256)" >> $GITHUB_OUTPUT
+
+          echo "All archives downloaded and verified successfully!"
+
+      - name: Update Formula files
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA256_DARWIN_AMD64="${{ steps.download.outputs.sha256_darwin_amd64 }}"
+          SHA256_DARWIN_ARM64="${{ steps.download.outputs.sha256_darwin_arm64 }}"
+          SHA256_LINUX_AMD64="${{ steps.download.outputs.sha256_linux_amd64 }}"
+
+          echo "Updating formulas with:"
+          echo "  Version: ${VERSION}"
+          echo "  SHA256 (darwin-amd64): ${SHA256_DARWIN_AMD64}"
+          echo "  SHA256 (darwin-arm64): ${SHA256_DARWIN_ARM64}"
+          echo "  SHA256 (linux-amd64):  ${SHA256_LINUX_AMD64}"
+
+          # Update both formula files
+          for formula in Formula/kubelogin.rb Formula/az-kubelogin.rb; do
+            echo "Updating ${formula}..."
+
+            # Update version
+            sed -i "s/version \"[0-9.]*\"/version \"${VERSION}\"/" "${formula}"
+
+            # Update SHA256 for darwin-amd64 (first sha256 after darwin-amd64 url)
+            sed -i "/kubelogin-darwin-amd64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_DARWIN_AMD64}\"/}" "${formula}"
+
+            # Update SHA256 for darwin-arm64
+            sed -i "/kubelogin-darwin-arm64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_DARWIN_ARM64}\"/}" "${formula}"
+
+            # Update SHA256 for linux-amd64
+            sed -i "/kubelogin-linux-amd64.zip/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA256_LINUX_AMD64}\"/}" "${formula}"
+
+            echo "Updated ${formula}"
+          done
+
+          # Show the changes
+          echo "Changes made:"
+          git diff Formula/
+
+      - name: Create Pull Request
+        if: steps.check.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Bump kubelogin to v${{ steps.version.outputs.version }}"
+          title: "Bump kubelogin to v${{ steps.version.outputs.version }}"
+          body: |
+            This PR updates kubelogin to version v${{ steps.version.outputs.version }}.
+
+            ## Changes
+            - Updated version in Formula/kubelogin.rb
+            - Updated version in Formula/az-kubelogin.rb
+            - Updated SHA256 checksums for all platforms
+
+            ## Verification
+            - [x] Downloaded archives from Azure/kubelogin releases
+            - [x] Verified SHA256 checksums match published checksums
+
+            ## Release
+            https://github.com/Azure/kubelogin/releases/tag/v${{ steps.version.outputs.version }}
+
+            ---
+            *This PR was automatically created by the update-kubelogin workflow.*
+          branch: "update-kubelogin-v${{ steps.version.outputs.version }}"
+          base: master
+          delete-branch: true
