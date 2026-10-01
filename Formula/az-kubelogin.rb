@@ -17,6 +17,9 @@ class AzKubelogin < Formula
   when OS.linux? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-amd64.zip"
     sha256 "2e92450a929dd2aec4da818b40dd4fda97aaeae2d6cd9c1074cc1371210f4ab9"
+  when OS.linux? && Hardware::CPU.arm?
+    url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-arm64.zip"
+    sha256 "d02712fcf3ed290cc3921205e535673b12fef0936da1c0b762afaa4d685a33c4"
   else
     odie "Unexpected platform!"
   end
@@ -29,6 +32,8 @@ class AzKubelogin < Formula
       bin.install "darwin_arm64/kubelogin" => "az-kubelogin"
     when OS.linux? && Hardware::CPU.intel?
       bin.install "linux_amd64/kubelogin" => "az-kubelogin"
+    when OS.linux? && Hardware::CPU.arm?
+      bin.install "linux_arm64/kubelogin" => "az-kubelogin"
     else
       odie "Unexpected platform!"
     end
