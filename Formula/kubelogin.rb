@@ -4,22 +4,22 @@
 class Kubelogin < Formula
   desc "A Kubernetes credential (exec) plugin implementing azure authentication"
   homepage "https://github.com/Azure/kubelogin"
-  version "0.2.20"
+  version "0.2.21"
   license "MIT"
 
   case
   when OS.mac? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-amd64.zip"
-    sha256 "533f2f159d40b81d890efbddb902ab49a04431669c89b1027dc0b0f0eaaf6729"
+    sha256 "f3cd9280056f8dd94c6008f00af30005e5819ac0d98b2f70dfcee77ff2eb6a4f"
   when OS.mac? && Hardware::CPU.arm?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-darwin-arm64.zip"
-    sha256 "1583a65ed6833145a9427f7920ae8cfb7b86244b1b3e8c6b4a0f016101d1634d"
+    sha256 "dca26962855a3865ffec36049848b0741c00032f7b25078d6e35efc38de1c598"
   when OS.linux? && Hardware::CPU.intel?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-amd64.zip"
-    sha256 "2e92450a929dd2aec4da818b40dd4fda97aaeae2d6cd9c1074cc1371210f4ab9"
+    sha256 "934a2a9618e018cb9fbeb14f3e4c28416fdae815df7706df91500e41d234eb66"
   when OS.linux? && Hardware::CPU.arm?
     url "https://github.com/Azure/kubelogin/releases/download/v#{version}/kubelogin-linux-arm64.zip"
-    sha256 "d02712fcf3ed290cc3921205e535673b12fef0936da1c0b762afaa4d685a33c4"
+    sha256 "76eee872b4dda6a0378d57e019cfb394b6ed58e6aa209ea55d941065a73d37b4"
   else
     odie "Unexpected platform!"
   end
